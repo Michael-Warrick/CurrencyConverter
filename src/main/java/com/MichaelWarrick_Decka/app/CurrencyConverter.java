@@ -12,15 +12,31 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONValue;
+
+/**
+ * CurrencyConverter
+ * 
+ * @brief A class for retrieving currency conversion information
+ */
 public class CurrencyConverter {
-    CurrencyConverter(String referenceCurrencyName, String selectedCurrencyName, Currency value) {
+    private JSONObject json;
+    private String baseCurrencyCode;
+
+    CurrencyConverter(String baseCurrencyCode) {
         try (CloseableHttpClient httpsClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet("https://open.er-api.com/v6/latest/USD");
+            HttpGet httpGet = new HttpGet("https://open.er-api.com/v6/latest/" + baseCurrencyCode.toUpperCase());
 
             httpsClient.execute(httpGet, response -> {
-                String responseBody = EntityUtils.toString(response.getEntity());
-                System.out.printf("Status code: %d\n", response.getCode());
-                System.out.printf("Response body:\n%s\n", responseBody);
+                int httpStatusCode = response.getCode();
+                String httpResponseBody = EntityUtils.toString(response.getEntity());
+
+                json = (JSONObject) JSONValue.parse(httpResponseBody);
+                System.out.println("Result: " + (String) json.get("result"));
+
+                this.baseCurrencyCode = baseCurrencyCode;
 
                 return null;
             });
@@ -30,8 +46,12 @@ public class CurrencyConverter {
         }
     }
 
-    Currency convert(Currency value) {
-        return value;
+    void exchange(String targetCurrencyCode, double amount) {
+        JSONObject rates = (JSONObject) json.get("rates");
+        double rate = (Double) rates.get(targetCurrencyCode.toUpperCase());
+        
+        System.out.printf("%s %f = %s %f\n", this.baseCurrencyCode.toUpperCase(), amount, targetCurrencyCode.toUpperCase(),
+                rate);
     }
 
 }
