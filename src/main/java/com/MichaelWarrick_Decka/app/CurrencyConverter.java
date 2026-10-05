@@ -49,9 +49,10 @@ public class CurrencyConverter {
     void exchange(String targetCurrencyCode, double amount) {
         JSONObject rates = (JSONObject) json.get("rates");
         double rate = (Double) rates.get(targetCurrencyCode.toUpperCase());
-        
-        System.out.printf("%s %f = %s %f\n", this.baseCurrencyCode.toUpperCase(), amount, targetCurrencyCode.toUpperCase(),
-                rate);
+
+        System.out.printf("%s %f = %s %f\n", this.baseCurrencyCode.toUpperCase(), amount,
+                targetCurrencyCode.toUpperCase(),
+                rate * amount);
     }
 
 }

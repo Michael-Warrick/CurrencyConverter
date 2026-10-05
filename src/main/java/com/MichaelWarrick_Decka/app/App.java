@@ -6,6 +6,16 @@ import java.lang.RuntimeException;
  * Driver class for handling input and passing data to CurrencyConverter backend
  */
 public class App {
+    private static boolean isNumeric(String value) {
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static void main(String[] args) {
         if (args.length < 1) {
             System.out.printf(
@@ -13,64 +23,63 @@ public class App {
             return;
         }
 
-        boolean isInVersionMode = false;
-        boolean isInHelpMode = false;
-        boolean shouldErrorOut = false;
+        boolean hasProvidedCommand = false;
+        boolean hasProvidedCurrency = false;
 
-        CurrencyConverter converter = null;
-        String currencyCode = "GBP";
+        String baseCurrencyCode = "GBP";
+        String currencyCode = "USD";
         double amount = 1;
-
+        CurrencyConverter converter = null;
 
         for (String value : args) {
             if (value.equals("-v") || value.equals("--version")) {
-                isInVersionMode = true;
                 System.out.printf("currency_converter version 1.0.0\n");
-                break;
+                return;
             }
 
             if (value.equals("-h") || value.equals("--help")) {
                 System.out.printf(
                         "usage: currency_converter [-v | --version] [-h | --help] [-l | --list] <command> [<base>] <currency> <amount>\n\nExample with base and currency:\n`currency_converter exchange -b=gpb -c=usd 1`\n");
-                break;
+                return;
             }
 
             if (value.equals("exchange")) {
+                hasProvidedCommand = true;
                 continue;
-            } else {
-                shouldErrorOut = true;
-                System.out.println("Error: No command provided!");
             }
 
             if (value.contains("-b=") || value.contains("--base=")) {
                 String[] baseArgument = value.split("=");
-                String baseCurrencyCode = baseArgument[1];
-
-                converter = new CurrencyConverter(baseCurrencyCode);
+                baseCurrencyCode = baseArgument[1];
                 continue;
-            } else {
-                // Default to gbp
-                converter = new CurrencyConverter("gbp");
             }
 
             if (value.contains("-c=") || value.contains("--currency=")) {
                 String[] currencyArgument = value.split("=");
                 currencyCode = currencyArgument[1];
+                hasProvidedCurrency = true;
                 continue;
-            } else {
-                shouldErrorOut = true;
-                System.err.println("No currency provided!\nusage: currency_converter [-v | --version] [-h | --help] [-l | --list] <command> [<base>] <currency> <amount>");
             }
 
-            try {
+            if (!hasProvidedCommand) {
+                System.err.println(
+                        "Unrecognised command provided!\nusage: currency_converter [-v | --version] [-h | --help] [-l | --list] <command> [<base>] <currency> <amount>");
+                return;
+            }
+
+            if (isNumeric(value)) {
                 amount = Double.parseDouble(value);
-            } catch (Exception e) {
-                e.printStackTrace();
+                break;
             }
         }
 
-        if (!shouldErrorOut && !isInVersionMode && !isInHelpMode) {
-            converter.exchange(currencyCode, amount);
+        if (!hasProvidedCurrency) {
+            System.err.println(
+                    "No currency provided!\nusage: currency_converter [-v | --version] [-h |--help] [-l | --list] <command> [<base>] <currency> <amount>");
+            return;
         }
+
+        converter = new CurrencyConverter(baseCurrencyCode);
+        converter.exchange(currencyCode, amount);
     }
 }
