@@ -3,6 +3,8 @@ package com.MichaelWarrick_Decka.app;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Currency;
+import java.util.Locale;
+import java.text.NumberFormat;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -46,13 +48,30 @@ public class CurrencyConverter {
         }
     }
 
-    void exchange(String targetCurrencyCode, double amount) {
+    void exchange(String currencyCode, double amount) {
         JSONObject rates = (JSONObject) json.get("rates");
-        double rate = (Double) rates.get(targetCurrencyCode.toUpperCase());
+        double rate = (Double) rates.get(currencyCode.toUpperCase());
 
-        System.out.printf("%s %f = %s %f\n", this.baseCurrencyCode.toUpperCase(), amount,
-                targetCurrencyCode.toUpperCase(),
-                rate * amount);
+        Currency baseCurrency = Currency.getInstance(this.baseCurrencyCode.toUpperCase());
+        String baseCurrencySymbol = baseCurrency.getSymbol();
+        String baseCurrencyDisplayName = baseCurrency.getDisplayName();
+        int baseCurrencyFractionDigits = baseCurrency.getDefaultFractionDigits();
+
+        NumberFormat baseCurrencyFormat = NumberFormat.getCurrencyInstance(Locale.UK);
+        baseCurrencyFormat.setCurrency(baseCurrency);
+        baseCurrencyFormat.setMaximumFractionDigits(baseCurrencyFractionDigits);
+
+        Currency currency = Currency.getInstance(currencyCode.toUpperCase());
+        String currencySymbol = currency.getSymbol();
+        String currencyDisplayName = currency.getDisplayName();
+        int currencyFractionDigits = currency.getDefaultFractionDigits();
+
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK);
+        currencyFormat.setCurrency(currency);
+        currencyFormat.setMaximumFractionDigits(currencyFractionDigits);
+
+        System.out.printf("%s (%s) = %s (%s)\n", baseCurrencyFormat.format(amount),
+                baseCurrencyDisplayName, currencyFormat.format(rate * amount), currencyDisplayName);
     }
 
 }
