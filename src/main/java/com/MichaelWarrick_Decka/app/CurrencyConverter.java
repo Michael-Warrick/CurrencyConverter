@@ -1,6 +1,5 @@
 package com.MichaelWarrick_Decka.app;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.File;
 
@@ -16,15 +15,11 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
 
 /**
@@ -33,14 +28,13 @@ import org.json.simple.JSONValue;
  * @brief A class for retrieving currency conversion information
  */
 public class CurrencyConverter {
-    private int httpResponseCode;
     private JSONObject json;
     private String baseCurrencyCode;
 
     CurrencyConverter(String baseCurrencyCode) {
         this.baseCurrencyCode = baseCurrencyCode;
 
-        // Check if cache exists, if not download and save to disk.
+        // Check if cache exists for a given base currency
         File cacheFile = new File("target/.cache/exchange_data_" + this.baseCurrencyCode.toLowerCase() + ".json");
         if (cacheFile.exists() && !cacheFile.isDirectory()) {
             String cacheFileContents = "";
@@ -52,17 +46,19 @@ public class CurrencyConverter {
             
             this.json = (JSONObject) JSONValue.parse(cacheFileContents);
 
-            return;
+            long cacheFileNextUpdateUnixTime = (long) this.json.get("time_next_update_unix");
+            long currentUnixTime = System.currentTimeMillis() / 1000L;
+            if (currentUnixTime < cacheFileNextUpdateUnixTime) {
+                // Cached file is valid, perform local lookup.
+                return;
+            }
         }
 
-        // TODO: If it does, check if cache is invalid (i.e., out of date, different base currency... etc.), if so redownload.
-
+        // If cache does not exist, is out of date or not available for the chosen base currency, download the latest available data
         try (CloseableHttpClient httpsClient = HttpClients.createDefault()) {
             HttpGet httpGet = new HttpGet("https://open.er-api.com/v6/latest/" + baseCurrencyCode.toUpperCase());
 
             httpsClient.execute(httpGet, response -> {
-                this.httpResponseCode = response.getCode();
-
                 String httpResponseBody = EntityUtils.toString(response.getEntity());
                 this.json = (JSONObject) JSONValue.parse(httpResponseBody);
 
@@ -82,7 +78,7 @@ public class CurrencyConverter {
     }
 
     public void exchange(String currencyCode, double amount) {
-        JSONObject rates = (JSONObject) json.get("rates");
+        JSONObject rates = (JSONObject) this.json.get("rates");
         double rate = (Double) rates.get(currencyCode.toUpperCase());
 
         Currency baseCurrency = Currency.getInstance(this.baseCurrencyCode.toUpperCase());

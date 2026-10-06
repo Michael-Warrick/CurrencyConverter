@@ -1,7 +1,5 @@
 package com.MichaelWarrick_Decka.app;
 
-import java.lang.RuntimeException;
-
 /**
  * Driver class for handling input and passing data to CurrencyConverter backend
  */
