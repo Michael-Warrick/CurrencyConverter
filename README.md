@@ -1,9 +1,9 @@
 # CurrencyConverter
-A simple command-line application written in Java 17 to convert popular currencies.
+A simple command-line application written in Java 17 to exchange popular currencies.
 
 ## Usage
 ```shell
-usage: currency_converter [-v | --version] [-h | --help] [-l | --list] <command> [<args>]
+usage: currency_converter [-v | --version] [-h | --help] [-l | --list] <command> [<base>] <currency> [<amount>]
 ```
 
 ## Features
@@ -13,47 +13,27 @@ usage: currency_converter [-v | --version] [-h | --help] [-l | --list] <command>
 - Offline availability (falls back on most recent cached data)
 - Simple, lightweight command-line interface
 
-## Building from Source
+## Quickstart guide
 ### Compilation
-```shell
-# Plugin to allow copying of archives to target directory
-mvn install dependency:copy-dependencies
-```
-
 ```shell
 mvn package
 ```
 
 ## Running
-### Unix/Linux
 ```shell
-java -cp target/CurrencyConverter-1.0-SNAPSHOT.jar:target/dependency/* com.MichaelWarrick_Decka.app.App
+java -jar target/CurrencyConverter-1.0-SNAPSHOT.jar exchange -b=gbp -c=eur 1
+```
+```shell
+# Example output
+£1.00 (British Pound) = €1.18 (Euro)
 ```
 
-### Windows
-```shell
-java -cp target/CurrencyConverter-1.0-SNAPSHOT.jar;target/dependency/* com.MichaelWarrick_Decka.app.App
-```
+## Commands
+`-v` or `--version`: Prints application version to console.
 
-## Examples
-### Only specifying currency
-```shell
-java -cp target/CurrencyConverter-1.0-SNAPSHOT.jar:target/dependency/* com.MichaelWarrick_Decka.app.App exchange -c=eur
-```
-### Specifying base and currency
-```shell
-java -cp target/CurrencyConverter-1.0-SNAPSHOT.jar:target/dependency/* com.MichaelWarrick_Decka.app.App exchange -b=usd -c=eur
-```
+`-h` or `--help`: Prints helpful usage and example information to console.
 
-### Specifying base, currency and amount
-```shell
-java -cp target/CurrencyConverter-1.0-SNAPSHOT.jar:target/dependency/* com.MichaelWarrick_Decka.app.App exchange -b=usd -c=eur 12.75
-```
-
-### Specifying base, currency and amount (long argument names)
-```shell
-java -cp target/CurrencyConverter-1.0-SNAPSHOT.jar:target/dependency/* com.MichaelWarrick_Decka.app.App exchange --base=usd --currency=eur 12.75
-```
+`exchange [--b=<currency> | --base=<currency>] -c=<currency> | --currency=<currency> [<amount>]`: Prints exchange rate for a given base, in the desired currency for a provided amount.
 
 ## Credit
 <a href="https://www.exchangerate-api.com">Rates By Exchange Rate API</a>
